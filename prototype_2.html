@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Command Integration Prototype</title>
+    <style>
+        :root {
+            --primary-color: #8e44ad;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+            --success-color: #2ecc71;
+            --white: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 375px;
+            margin: 20px auto;
+            background: var(--white);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            position: relative;
+        }
+        
+        .phone-frame {
+            position: relative;
+            height: 667px;
+            overflow: hidden;
+            border: 10px solid #333;
+            border-radius: 15px;
+        }
+        
+        .screen {
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .step {
+            width: 40px;
+            height: 4px;
+            background-color: var(--light-color);
+            margin: 0 5px;
+            border-radius: 2px;
+        }
+        
+        .step.active {
+            background-color: var(--primary-color);
+        }
+        
+        .camera-view {
+            aspect-ratio: 3/4;
+            background-color: #333;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .camera-overlay {
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
+            border: 2px dashed var(--white);
+            border-radius: 5px;
+        }
+        
+        .camera-guidance {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .capture-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            background-color: var(--white);
+            border-radius: 50%;
+            border: 5px solid rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+        }
+        
+        .voice-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .voice-icon {
+            color: white;
+            font-size: 20px;
+        }
+        
+        .recognition-screen {
+            padding: 20px;
+        }
+        
+        .image-preview {
+            background-color: var(--light-color);
+            border-radius: 8px;
+            padding: 10px;
+            aspect-ratio: 3/4;
+            background-image: url('/api/placeholder/335/400');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .task-container {
+            margin-bottom: 20px;
+        }
+        
+        .task-item {
+            background-color: var(--white);
+            border-radius: 5px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .task-item.active {
+            background-color: rgba(142, 68, 173, 0.1);
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .task-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .task-details {
+            font-size: 12px;
+            color: var(--dark-color);
+        }
+        
+        .voice-indicator {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .voice-waves {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 60px;
+            margin-bottom: 15px;
+        }
+        
+        .wave {
+            width: 5px;
+            height: 40px;
+            margin: 0 3px;
+            border-radius: 5px;
+            background-color: var(--primary-color);
+            animation: wave 1s infinite ease-in-out;
+        }
+        
+        .wave:nth-child(2) {
+            animation-delay: 0.1s;
+            height: 35px;
+        }
+        
+        .wave:nth-child(3) {
+            animation-delay: 0.2s;
+            height: 55px;
+        }
+        
+        .wave:nth-child(4) {
+            animation-delay: 0.3s;
+            height: 45px;
+        }
+        
+        .wave:nth-child(5) {
+            animation-delay: 0.4s;
+            height: 50px;
+        }
+        
+        @keyframes wave {
+            0%, 100% {
+                transform: scaleY(0.5);
+            }
+            50% {
+                transform: scaleY(1);
+            }
+        }
+        
+        .voice-transcript {
+            background-color: var(--light-color);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .task-enhancement {
+            background-color: rgba(142, 68, 173, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .task-enhancement h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .enhancement-detail {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .detail-label {
+            width: 80px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .detail-value {
+            flex: 1;
+            background-color: var(--white);
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .button-group {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border-radius: 5px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .btn-secondary {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            flex: 1;
+            margin-left: 10px;
+        }
+        
+        .calendar-view {
+            padding: 0;
+        }
+        
+        .date-header {
+            background-color: var(--light-color);
+            padding: 15px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .time-slots {
+            padding: 10px;
+        }
+        
+        .time-slot {
+            padding: 10px;
+            border-bottom: 1px solid var(--light-color);
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .time-label {
+            width: 50px;
+            color: var(--dark-color);
+            font-size: 12px;
+        }
+        
+        .event {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-left: 10px;
+            font-size: 13px;
+        }
+        
+        .event.voice-added {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .event.existing {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+        
+        .success-message {
+            text-align: center;
+            padding: 20px;
+            color: var(--success-color);
+            font-weight: 500;
+            margin-top: 20px;
+        }
+        
+        .microphone-pulse {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 0 auto;
+        }
+        
+        .microphone-icon {
+            color: white;
+            font-size: 32px;
+        }
+        
+        .pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            opacity: 0.8;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            70% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; margin: 40px 0 20px; color: #8e44ad;">Voice Command Integration Prototype</h1>
+    
+    <!-- Capture Screen -->
+    <div class="container">
+        <div class="phone-frame">
+            <div class="screen">
+                <div class="header">
+                    <div class="title">Capture Handwritten List</div>
+                </div>
+                <div class="content">
+                    <div class="step-indicator">
+                        <div class="step active"></div>
+                        <div class="step"></div>
+                        <div class="step"></div>
+                        <div class="step"></div>
+                    </div>
+                    <div class="camera-view">
+                        <div class="camera-overlay"></div>
+                        <div class="camera-guidance">
+                            Position your to-do list within the frame<br>
+                            Ensure good lighting
+                        </div>
+                        <div class="capture-btn"></div>
+                        <div class="voice-btn">
+                            <div class="voice-icon">🎤</div>
+                        </div>
+                    </div>
+                    <p style="text-align: center; font-size: 14px; color: #34495e;">
+                        Take a photo of your list, then use voice<br>commands to add details
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Task Recognition Screen -->
+    <div class="container">
+        <div class="phone-frame">
+            <div class="screen">
+                <div class="header">
+                    <div class="title">Recognized Tasks</div>
+                </div>
+                <div class="recognition-screen">
+                    <div class="step-indicator">
+                        <div class="step active"></div>
+                        <div class="step active"></div>
+                        <div class="step"></div>
+                        <div class="step"></div>
+                    </div>
+                    <div class="image-preview"></div>
+                    <div class="task-container">
+                        <div class="task-item active">
+                            <div class="task-title">Team meeting preparation</div>
+                            <div class="task-details">Tap to select and add voice details</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">Call about project deadline</div>
+                            <div class="task-details">Tap to select and add voice details</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">Review design documents</div>
+                            <div class="task-details">Tap to select and add voice details</div>
+                        </div>
+                        <div class="task-item">
+                            <div class="task-title">Grocery shopping</div>
+                            <div class="task-details">Tap to select and add voice details</div>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-secondary">Retake</button>
+                        <button class="btn btn-primary">Add Voice Details</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Voice Enhancement Screen -->
+    <div class="container">
+        <div class="phone-frame">
+            <div class="screen">
+                <div class="header">
+                    <div class="title">Add Voice Details</div>
+                </div>
+                <div class="recognition-screen">
+                    <div class="step-indicator">
+                        <div class="step active"></div>
+                        <div class="step active"></div>
+                        <div class="step active"></div>
+                        <div class="step"></div>
+                    </div>
+                    <div class="task-item active">
+                        <div class="task-title">Team meeting preparation</div>
+                        <div class="task-details">Adding voice details...</div>
+                    </div>
+                    
+                    <div class="voice-indicator">
+                        <div class="microphone-pulse">
+                            <div class="pulse"></div>
+                            <div class="microphone-icon">🎤</div>
+                        </div>
+                        <p style="margin-top: 15px;">Speak now to add details</p>
+                    </div>
+                    
+                    <div class="voice-transcript">
+                        "Schedule team meeting prep for tomorrow at 9am, needs 45 minutes, high priority"
+                    </div>
+                    
+                    <div class="task-enhancement">
+                        <h3>Interpreted Details</h3>
+                        <div class="enhancement-detail">
+                            <div class="detail-label">When</div>
+                            <div class="detail-value">Tomorrow, 9:00 AM</div>
+                        </div>
+                        <div class="enhancement-detail">
+                            <div class="detail-label">Duration</div>
+                            <div class="detail-value">45 minutes</div>
+                        </div>
+                        <div class="enhancement-detail">
+                            <div class="detail-label">Priority</div>
+                            <div class="detail-value">High</div>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn btn-secondary">Try Again</button>
+                        <button class="btn btn-primary">Confirm & Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Calendar Integration Screen -->
+    <div class="container">
+        <div class="phone-frame">
+            <div class="screen">
+                <div class="header">
+                    <div class="title">Calendar Updated</div>
+                </div>
+                <div class="calendar-view">
+                    <div class="step-indicator">
+                        <div class="step active"></div>
+                        <div class="step active"></div>
+                        <div class="step active"></div>
+                        <div class="step active"></div>
+                    </div>
+                    <div class="date-header">Tomorrow, March 24, 2025</div>
+                    <div class="time-slots">
+                        <div class="time-slot">
+                            <div class="time-label">9:00 AM</div>
+                            <div class="event voice-added">Team meeting preparation [HIGH]</div>
+                        </div>
+                        <div class="time-slot">
+                            <div class="time-label">10:00 AM</div>
+                            <div class="event existing">Weekly team standup</div>
+                        </div>
+                        <div class="time-slot">
+                            <div class="time-label">11:00 AM</div>
+                            <div class="event voice-added">Call about project deadline</div>
+                        </div>
+                        <div class="time-slot">
+                            <div class="time-label">12:00 PM</div>
+                            <div class="event existing">Lunch</div>
+                        </div>
+                        <div class="time-slot">
+                            <div class="time-label">1:00 PM</div>
+                            <div class="event voice-added">Review design documents</div>
+                        </div>
+                        <div class="time-slot">
+                            <div class="time-label">2:30 PM</div>
+                            <div class="time-label"></div>
+                        </div>
+                        <div class="time-slot">
+                            <div class="time-label">3:00 PM</div>
+                            <div class="event existing">1:1 with manager</div>
+                        </div>
+                        <div class="time-slot">
+                            <div class="time-label">4:00 PM</div>
+                            <div class="event voice-added">Grocery shopping</div>
+                        </div>
+                    </div>
+                    <div class="success-message">
+                        ✓ 4 tasks successfully added to calendar
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
