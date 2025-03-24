@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlannerSync Final Prototype</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #4a6ee0;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .screens {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .screen {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 300px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+        .screen-header {
+            background-color: #4a6ee0;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            border-bottom: 1px solid #3a5ecf;
+        }
+        .status-bar {
+            background-color: #3a5ecf;
+            color: white;
+            padding: 5px 15px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .screen-content {
+            flex: 1;
+            padding: 15px;
+            overflow: auto;
+        }
+        .nav-bar {
+            background-color: #f5f7fa;
+            padding: 10px;
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #e1e4e8;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            color: #4a6ee0;
+        }
+        .nav-icon {
+            background-color: #4a6ee0;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-bottom: 5px;
+        }
+        .button {
+            background-color: #4a6ee0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-weight: bold;
+            margin: 10px 0;
+            width: 100%;
+            cursor: pointer;
+            text-align: center;
+        }
+        .button.secondary {
+            background-color: #f5f7fa;
+            color: #4a6ee0;
+            border: 1px solid #4a6ee0;
+        }
+        .capture-screen {
+            background-color: #333;
+            color: white;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .capture-frame {
+            border: 2px dashed white;
+            width: 80%;
+            height: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .capture-buttons {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .camera-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: white;
+            border: 3px solid #888;
+        }
+        .task {
+            background-color: #f5f7fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4a6ee0;
+        }
+        .task.high-priority {
+            border-left-color: #e04a4a;
+        }
+        .task.medium-priority {
+            border-left-color: #e0c14a;
+        }
+        .task-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .task-details {
+            color: #777;
+            font-size: 14px;
+        }
+        .verification-container {
+            display: flex;
+            gap: 10px;
+            height: 100%;
+        }
+        .original-image {
+            flex: 1;
+            background-color: #eee;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+            color: #777;
+            padding: 10px;
+        }
+        .recognized-content {
+            flex: 1;
+            overflow: auto;
+        }
+        .uncertain-text {
+            background-color: #ffeb99;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .calendar-interface {
+            display: flex;
+            height: 100%;
+        }
+        .task-panel {
+            width: 40%;
+            background-color: #f5f7fa;
+            padding: 10px;
+            overflow: auto;
+        }
+        .calendar-panel {
+            flex: 1;
+            overflow: auto;
+        }
+        .time-slot {
+            border-bottom: 1px solid #e1e4e8;
+            padding: 10px;
+            min-height: 30px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .time-slot-time {
+            width: 60px;
+            color: #777;
+            font-size: 14px;
+        }
+        .time-slot-content {
+            flex: 1;
+        }
+        .calendar-task {
+            background-color: #e3e9ff;
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-left: 3px solid #4a6ee0;
+        }
+        .calendar-task.high-priority {
+            background-color: #fae1e1;
+            border-left-color: #e04a4a;
+        }
+        .draggable-task {
+            background-color: #e3e9ff;
+            border-left: 3px solid #4a6ee0;
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 8px;
+            cursor: grab;
+        }
+        .draggable-task.high-priority {
+            background-color: #fae1e1;
+            border-left-color: #e04a4a;
+        }
+        .draggable-task.medium-priority {
+            background-color: #fef7e1;
+            border-left-color: #e0c14a;
+        }
+        .final-summary {
+            background-color: #f5f7fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .sync-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .sync-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #4caf50;
+            margin-right: 10px;
+        }
+        .processing-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        .processing-indicator {
+            width: 80%;
+            height: 8px;
+            background-color: #e1e4e8;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .processing-progress {
+            height: 100%;
+            width: 70%;
+            background-color: #4a6ee0;
+            border-radius: 4px;
+        }
+        .processing-text {
+            color: #777;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .detected-item {
+            display: inline-block;
+            border: 2px solid #4a6ee0;
+            border-radius: 4px;
+            padding: 5px;
+            margin: 5px;
+            font-size: 12px;
+            color: #4a6ee0;
+        }
+        .voice-interface {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+        .voice-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #4a6ee0;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .voice-suggestions {
+            background-color: #f5f7fa;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .voice-suggestion {
+            color: #4a6ee0;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .screen-description {
+            margin: 15px 0;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        .flow-arrows {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .arrow {
+            width: 40px;
+            height: 40px;
+            position: relative;
+            margin: 0 30px;
+        }
+        .arrow::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #4a6ee0;
+            transform: translateY(-50%);
+        }
+        .arrow::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            border-top: 2px solid #4a6ee0;
+            border-right: 2px solid #4a6ee0;
+            transform: translateY(-50%) rotate(45deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PlannerSync Final Prototype</h1>
+        
+        <div class="screens">
+            <!-- Home Screen -->
+            <div class="screen">
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <span>PlannerSync</span>
+                </div>
+                <div class="screen-header">
+                    PlannerSync
+                </div>
+                <div class="screen-content">
+                    <h2>Welcome to PlannerSync</h2>
+                    <p>Bridge the gap between your paper planner and digital calendar.</p>
+                    
+                    <div class="button">Capture New List</div>
+                    <div class="button secondary">View Recent Captures</div>
+                    <div class="button secondary">Calendar View</div>
+                    
+                    <div style="margin-top: 30px;">
+                        <h3>Recent Activity</h3>
+                        <div class="task">
+                            <div class="task-title">Week Planning</div>
+                            <div class="task-details">5 tasks • Captured 2 days ago</div>
+                        </div>
+                        <div class="task high-priority">
+                            <div class="task-title">Project Deadlines</div>
+                            <div class="task-details">3 tasks • Captured yesterday</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Home</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Capture</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Calendar</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Settings</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Capture Screen -->
+            <div class="screen">
+                <div class="status-bar">
+                    <span>9:42</span>
+                    <span>PlannerSync</span>
+                </div>
+                <div class="screen-content capture-screen">
+                    <div class="capture-frame">
+                        <p>Position your handwritten list within the frame</p>
+                    </div>
+                    <div class="capture-buttons">
+                        <div class="camera-button"></div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Home</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Capture</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Calendar</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Settings</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Processing Screen -->
+            <div class="screen">
+                <div class="status-bar">
+                    <span>9:43</span>
+                    <span>PlannerSync</span>
+                </div>
+                <div class="screen-header">
+                    Processing
+                </div>
+                <div class="screen-content processing-screen">
+                    <div class="processing-indicator">
+                        <div class="processing-progress"></div>
+                    </div>
+                    <div class="processing-text">
+                        Recognizing your handwritten tasks and context...
+                    </div>
+                    <div>
+                        <div class="detected-item">★ Priority markers</div>
+                        <div class="detected-item">Time indicators</div>
+                        <div class="detected-item">Task relationships</div>
+                        <div class="detected-item">Color coding</div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Home</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Capture</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Calendar</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Settings</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flow-arrows">
+            <div class="arrow"></div>
+            <div class="arrow"></div>
+        </div>
+        
+        <div class="screens">
+            <!-- Verification Screen -->
+            <div class="screen">
+                <div class="status-bar">
+                    <span>9:44</span>
+                    <span>PlannerSync</span>
+                </div>
+                <div class="screen-header">
+                    Verify Recognition
+                </div>
+                <div class="screen-content">
+                    <div class="verification-container">
+                        <div class="original-image">
+                            [Original handwritten list image]
+                        </div>
+                        <div class="recognized-content">
+                            <div class="task high-priority">
+                                <div class="task-title">⭐ Team meeting</div>
+                                <div class="task-details">10:30am • 60min</div>
+                            </div>
+                            <div class="task">
+                                <div class="task-title">Email client about <span class="uncertain-text">proposal</span></div>
+                                <div class="task-details">30min</div>
+                            </div>
+                            <div class="task medium-priority">
+                                <div class="task-title">Review project <span class="uncertain-text">timeline</span></div>
+                                <div class="task-details">45min</div>
+                            </div>
+                            <div class="task high-priority">
+                                <div class="task-title">⭐ Finish presentation</div>
+                                <div class="task-details">2 hours</div>
+                            </div>
+                            <div class="task">
+                                <div class="task-title"><span class="uncertain-text">Lunch</span> with Mark</div>
+                                <div class="task-details">1:00pm • 60min</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="button">Confirm & Continue</div>
+                <div class="nav-bar">
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Home</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Capture</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Calendar</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Settings</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Task Management Screen -->
+            <div class="screen">
+                <div class="status-bar">
+                    <span>9:45</span>
+                    <span>PlannerSync</span>
+                </div>
+                <div class="screen-header">
+                    Manage Tasks
+                </div>
+                <div class="screen-content">
+                    <div class="task high-priority">
+                        <div class="task-title">⭐ Team meeting</div>
+                        <div class="task-details">10:30am • 60min</div>
+                    </div>
+                    <div class="task">
+                        <div class="task-title">Email client about proposal</div>
+                        <div class="task-details">30min</div>
+                    </div>
+                    <div class="task medium-priority">
+                        <div class="task-title">Review project timeline</div>
+                        <div class="task-details">45min</div>
+                    </div>
+                    <div class="task high-priority">
+                        <div class="task-title">⭐ Finish presentation</div>
+                        <div class="task-details">2 hours</div>
+                    </div>
+                    <div class="task">
+                        <div class="task-title">Lunch with Mark</div>
+                        <div class="task-details">1:00pm • 60min</div>
+                    </div>
+                    
+                    <div class="button">Continue to Scheduling</div>
+                    <div class="button secondary">Add New Task</div>
+                </div>
+                <div class="nav-bar">
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Home</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Capture</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Calendar</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Settings</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Voice Enhancement Screen (Optional) -->
+            <div class="screen">
+                <div class="status-bar">
+                    <span>9:46</span>
+                    <span>PlannerSync</span>
+                </div>
+                <div class="screen-header">
+                    Voice Enhancement
+                </div>
+                <div class="screen-content voice-interface">
+                    <div>
+                        <p>Add context using voice commands</p>
+                        <div class="voice-suggestions">
+                            <div class="voice-suggestion">"Make team meeting high priority"</div>
+                            <div class="voice-suggestion">"Schedule lunch at 1pm tomorrow"</div>
+                            <div class="voice-suggestion">"Set presentation deadline for 5pm"</div>
+                        </div>
+                    </div>
+                    
+                    <div class="voice-button">
+                        MIC
+                    </div>
+                    
+                    <div>
+                        <div class="button">Skip Voice Enhancement</div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Home</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Capture</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Calendar</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Settings</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flow-arrows">
+            <div class="arrow"></div>
+            <div class="arrow"></div>
+        </div>
+        
+        <div class="screens">
+            <!-- Calendar Scheduling Screen -->
+            <div class="screen">
+                <div class="status-bar">
+                    <span>9:47</span>
+                    <span>PlannerSync</span>
+                </div>
+                <div class="screen-header">
+                    Schedule Tasks
+                </div>
+                <div class="screen-content">
+                    <div class="calendar-interface">
+                        <div class="task-panel">
+                            <p><strong>Drag tasks to calendar:</strong></p>
+                            <div class="draggable-task high-priority">
+                                ⭐ Team meeting
+                                <br>
+                                <small>60min</small>
+                            </div>
+                            <div class="draggable-task">
+                                Email client
+                                <br>
+                                <small>30min</small>
+                            </div>
+                            <div class="draggable-task medium-priority">
+                                Review timeline
+                                <br>
+                                <small>45min</small>
+                            </div>
+                            <div class="draggable-task high-priority">
+                                ⭐ Finish presentation
+                                <br>
+                                <small>2 hours</small>
+                            </div>
+                        </div>
+                        <div class="calendar-panel">
+                            <div class="time-slot">
+                                <div class="time-slot-time">9:00 AM</div>
+                                <div class="time-slot-content"></div>
+                            </div>
+                            <div class="time-slot">
+                                <div class="time-slot-time">10:00 AM</div>
+                                <div class="time-slot-content">
+                                    <div class="calendar-task high-priority">
+                                        ⭐ Team meeting
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="time-slot">
+                                <div class="time-slot-time">11:00 AM</div>
+                                <div class="time-slot-content"></div>
+                            </div>
+                            <div class="time-slot">
+                                <div class="time-slot-time">12:00 PM</div>
+                                <div class="time-slot-content"></div>
+                            </div>
+                            <div class="time-slot">
+                                <div class="time-slot-time">1:00 PM</div>
+                                <div class="time-slot-content">
+                                    <div class="calendar-task">
+                                        Lunch with Mark
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="time-slot">
+                                <div class="time-slot-time">2:00 PM</div>
+                                <div class="time-slot-content"></div>
+                            </div>
+                            <div class="time-slot">
+                                <div class="time-slot-time">3:00 PM</div>
+                                <div class="time-slot-content"></div>
+                            </div>
+                            <div class="time-slot">
+                                <div class="time-slot-time">4:00 PM</div>
+                                <div class="time-slot-content"></div>
+                            </div>
+                            <div class="time-slot">
+                                <div class="time-slot-time">5:00 PM</div>
+                                <div class="time-slot-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="button">Finalize Schedule</div>
+                <div class="nav-bar">
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Home</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Capture</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Calendar</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Settings</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Finalization Screen -->
+            <div class="screen">
+                <div class="status-bar">
+                    <span>9:48</span>
+                    <span>PlannerSync</span>
+                </div>
+                <div class="screen-header">
+                    Finalize & Sync
+                </div>
+                <div class="screen-content">
+                    <div class="final-summary">
+                        <h3>Schedule Summary</h3>
+                        <p>5 tasks scheduled for today</p>
+                        <p>Earliest: 10:30 AM (Team meeting)</p>
+                        <p>Latest: 4:00 PM (Finish presentation)</p>
+                    </div>
+                    
+                    <h3>Sync with Calendars</h3>
+                    <div class="sync-status">
+                        <div class="sync-icon"></div>
+                        <div>Google Calendar</div>
+                    </div>
+                    <div class="sync-status">
+                        <div class="sync-icon"></div>
+                        <div>Apple Calendar</div>
+                    </div>
+                    
+                    <div class="button">Sync Now</div>
+                    <div class="button secondary">Edit Schedule</div>
+                    <div class="button secondary">Save as Template</div>
+                </div>
+                <div class="nav-bar">
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Home</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Capture</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Calendar</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Settings</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Confirmation Screen -->
+            <div class="screen">
+                <div class="status-bar">
+                    <span>9:49</span>
+                    <span>PlannerSync</span>
+                </div>
+                <div class="screen-header">
+                    Success!
+                </div>
+                <div class="screen-content" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                    <div style="width: 80px; height: 80px; background-color: #4caf50; border-radius: 50%; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 36px;">
+                        ✓
+                    </div>
+                    <h2>Successfully Synchronized</h2>
+                    <p>All tasks have been added to your calendars</p>
+                    <div style="margin-top: 30px;">
+                        <div class="button">Return to Home</div>
+                        <div class="button secondary">View in Calendar</div>
+                    </div>
+                </div>
+                <div class="nav-bar">
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Home</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Capture</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Calendar</span>
+                    </div>
+                    <div class="nav-item">
+                        <div class="nav-icon"></div>
+                        <span>Settings</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="screen-description">
+            <p><strong>Figure 10.1:</strong> PlannerSync Final
